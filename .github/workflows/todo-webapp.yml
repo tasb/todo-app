@@ -33,7 +33,7 @@ jobs:
     
     - name: Publish
       run: |
-        dotnet publish --no-build src/TodoWebapp/TodoWebapp.csproj -o publish
+        dotnet publish --no-build src/TodoWebapp/TodoWebapp.csproj -o src/TodoWebapp/publish
 
     - uses: actions/upload-artifact@v3
       with:
