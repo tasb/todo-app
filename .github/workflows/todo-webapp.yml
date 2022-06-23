@@ -12,6 +12,10 @@ on:
       - 'src/TodoWebapp/**'
       - '.github/workflows/todo-webapp.yml'
 
+env:
+  AZURE_WEBAPP_NAME: "tasb-tado-app"
+  ARTIFACT_NAME: "todo-webapp"
+
 jobs:
   build:
 
@@ -39,5 +43,54 @@ jobs:
     - uses: actions/upload-artifact@v3
       if: github.event_name != 'pull_request'
       with:
-        name: todo-webapp
+        name: ${{ env.ARTIFACT_NAME }}
         path: src/TodoWebapp/publish
+
+  uat:
+    environment: uat
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/download-artifact@v3
+      with:
+        name: ${{ env.ARTIFACT_NAME }}
+        path: ./todo-app
+    
+    - uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: 'Run Azure webapp deploy action using publish profile credentials'
+      uses: azure/webapps-deploy@v2
+      with: 
+        app-name: ${{ env.AZURE_WEBAPP_NAME }} # Replace with your app name
+        package: ./todo-app
+        slot-name: uat
+    
+    - name: logout
+      run: |
+        az logout
+
+  prod:
+    environment: prod
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/download-artifact@v3
+      with:
+        name: ${{ env.ARTIFACT_NAME }}
+        path: ./todo-api
+    
+    - uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: 'Run Azure webapp deploy action using publish profile credentials'
+      uses: azure/webapps-deploy@v2
+      with: 
+        app-name: ${{ env.AZURE_WEBAPP_NAME }} # Replace with your app name
+        package: ./todo-api
+    
+    - name: logout
+      run: |
+        az logout
